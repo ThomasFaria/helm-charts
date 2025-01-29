@@ -5,7 +5,7 @@ podAnnotations: {}
 deployment:
   image:
     repository: vllm/vllm-openai
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
     tag: latest
   hftoken: your_token
   args: 
@@ -13,6 +13,8 @@ deployment:
     memoryutilization: 0.8
     dtype: half
     maxModelLen: 8208
+
+resources:
   gpu:
     number: 1
 
@@ -22,15 +24,15 @@ service:
 
 
 ingress:
-    enabled: true
-    className: "nginx"
+    enabled: false
+    className: ""
     annotations: 
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    hostname: "llm-serving.lab.sspcloud.fr"
+    hostname: "charts.example"
 
 s3:
   enabled: true # Set to true to use S3
-  modelHfBucket: "models-hf/hf_hub/diffusion"
+  modelHfBucket: ""
   # If not set and create is true, a name is generated using the fullname template
   accessKeyId: "" #$AWS_ACCESS_KEY_ID
   endpoint: "" #$AWS_S3_ENDPOINT

@@ -21,10 +21,10 @@ spec:
         image: "{{ .Values.deployment.image.repository }}:{{ .Values.deployment.image.tag }}"
         imagePullPolicy: {{ .Values.deployment.image.pullPolicy }}
         ports:
-        - containerPort: {{ .Values.service.port.number }}
+        - containerPort: {{ .Values.networking.port.number }}
         resources:
           limits:
-            nvidia.com/gpu: "{{ .Values.deployment.gpu.number }}"
+            nvidia.com/gpu: "{{ .Values.resources.gpu.number }}"
         env:
         - name: HF_TOKEN
           value: "{{ .Values.deployment.hftoken }}"
@@ -389,7 +389,6 @@ spec:
         - mountPath: /root/.cache/huggingface
           name: minio-bucket
         {{- end }}
-
       {{- if .Values.s3.enabled }}
       initContainers:
       - name: minio-init
@@ -428,7 +427,6 @@ spec:
         - name: minio-bucket
           mountPath: /root/.cache/huggingface/{{ .Values.deployment.args.model }}
       {{- end }}
-
       volumes:
       - name: dshm
         emptyDir:
