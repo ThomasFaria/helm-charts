@@ -2,33 +2,40 @@ nameOverride: ""
 fullnameOverride: "llm-serving"
 podAnnotations: {}
 
-deployment:
+service:
   image:
-    repository: vllm/vllm-openai
+    version: "vllm/vllm-openai:v0.7.0"
     pullPolicy: IfNotPresent
-    tag: "v0.6.4"
-  hftoken: your_token
-  args: 
-    model: meta-llama/Llama-3.2-3B-Instruct
-    memoryutilization: 0.8
-    dtype: half
-    maxModelLen: 8208
+    custom:
+      enabled: false
+      version: ""
 
 resources:
-  gpu:
-    number: 1
+  limits:
+    gpu:
+      number: 1
 
-service:
+huggingFace: 
+  hfToken: ""
+
+llm:
+  hfNamespace: meta-llama
+  hfModel: Llama-3.2-1B-Instruct
+  localPath: "/root/.cache/huggingface"
+  memoryUtilization: 0.8
+  dtype: "half"
+  maxModelLen": 8208
+
+networking:
   port:
     number: 8000
 
-
 ingress:
-    enabled: false
+    enabled: true
     className: ""
     annotations: 
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    hostname: "charts.example"
+    hostname: "chart-example.local"
 
 s3:
   enabled: true # Set to true to use S3

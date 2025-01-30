@@ -18,30 +18,42 @@ spec:
     spec:
       containers:
       - name: {{ .Chart.Name }}
-        image: "{{ .Values.deployment.image.repository }}:{{ .Values.deployment.image.tag }}"
-        imagePullPolicy: {{ .Values.deployment.image.pullPolicy }}
+        image: "{{ .Values.service.image.version }}"
+        imagePullPolicy: {{ .Values.service.image.pullPolicy }}
         ports:
         - containerPort: {{ .Values.networking.port.number }}
         resources:
           limits:
-            nvidia.com/gpu: "{{ .Values.resources.gpu.number }}"
+            nvidia.com/gpu: "{{ .Values.resources.limits.gpu.number }}"
         env:
         - name: HF_TOKEN
-          value: "{{ .Values.deployment.hftoken }}"
+          value: "{{ .Values.huggingFace.hfToken }}"
         args:
         - --model
         {{- if .Values.s3.enabled }}
-        - {{ .Values.deployment.args.path }}
+        - {{ .Values.llm.localPath }}
         - --served_model_name
-        - {{ .Values.deployment.args.hfnamespace }}/{{ .Values.deployment.args.hfmodel }}
+        - {{ .Values.llm.hfNamespace }}/{{ .Values.llm.hfModel }}
         {{- else }}
-        - {{ .Values.deployment.args.hfnamespace }}/{{ .Values.deployment.args.hfmodel }}
+        - {{ .Values.llm.hfNamespace }}/{{ .Values.llm.hfModel }}
+        {{- end }}
+        {{- if hasKey .Values.llm "memoryUtilization" }}
+        - --gpu-memory-utilization
+        - "{{ .Values.llm.memoryUtilization }}"
+        {{- end }}
+        {{- if hasKey .Values.llm "dtype" }}
+        - --dtype
+        - "{{ .Values.llm.dtype }}"
+        {{- end }}
+        {{- if hasKey .Values.llm "maxModelLen" }}
+        - --max-model-len
+        - "{{ .Values.llm.maxModelLen }}"
         {{- end }}
         volumeMounts:
         - mountPath: /dev/shm
           name: dshm
         {{- if .Values.s3.enabled }}
-        - mountPath: {{ .Values.deployment.args.path }}
+        - mountPath: {{ .Values.llm.localPath }}
           name: minio-bucket
         {{- end }}
       {{- if .Values.s3.enabled }}
@@ -51,12 +63,13 @@ spec:
         command: ["/bin/sh", "-c"]
         args:
           - |
+            # TODO: check if model needs token on huggingface
             export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
             export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
             export AWS_S3_ENDPOINT=$AWS_S3_ENDPOINT
             export AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN
             export MC_HOST_s3=https://$AWS_ACCESS_KEY_ID:$AWS_SECRET_ACCESS_KEY:$AWS_SESSION_TOKEN@$AWS_S3_ENDPOINT
-            mc cp -r s3/{{ .Values.s3.modelHfBucket }}/{{ .Values.deployment.args.hfnamespace }}/{{ .Values.deployment.args.hfmodel }}/ {{ .Values.deployment.args.path }}/{{ .Values.deployment.args.hfmodel }}/
+            mc cp -r s3/{{ .Values.s3.modelHfBucket }}/{{ .Values.llm.hfNamespace }}/{{ .Values.llm.hfModel }}/ {{ .Values.llm.localPath }}/{{ .Values.llm.hfModel }}/
         env:
         - name: AWS_ACCESS_KEY_ID
           valueFrom:
@@ -78,9 +91,14 @@ spec:
             secretKeyRef:
               name: "{{ include "llm-serving.secretName" . }}"
               key: AWS_SESSION_TOKEN
+        - name: HF_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: "{{ include "llm-serving.secretName" . }}"
+              key: HF_TOKEN
         volumeMounts:
         - name: minio-bucket
-          mountPath: {{ .Values.deployment.args.path }}/{{ .Values.deployment.args.hfmodel }}
+          mountPath: {{ .Values.llm.localPath }}/{{ .Values.llm.hfModel }}
       {{- end }}
       volumes:
       - name: dshm
