@@ -45,3 +45,5 @@ s3:
   defaultRegion: ""
   secretAccessKey: ""
   sessionToken: ""
+
+nodeSelector: {}

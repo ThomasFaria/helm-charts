@@ -108,3 +108,7 @@ spec:
       - name: minio-bucket
         emptyDir: {}
       {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
