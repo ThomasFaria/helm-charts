@@ -37,6 +37,9 @@ ingress:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     hostname: "chart-example.local"
 
+svc:
+    enabled: true
+
 s3:
   enabled: true # Set to true to use S3
   modelHfBucket: ""

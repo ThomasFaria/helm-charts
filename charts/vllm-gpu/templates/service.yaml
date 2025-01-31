@@ -1,3 +1,4 @@
+{{- if .Values.svc.enabled -}}
 apiVersion: v1
 kind: Service
 metadata:
@@ -13,3 +14,4 @@ spec:
     targetPort: {{ .Values.networking.port.number }}
     nodePort: {{ .Values.networking.port.nodePort }}
   type: NodePort
+{{- end}}
