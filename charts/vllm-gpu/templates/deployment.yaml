@@ -76,7 +76,7 @@ spec:
             /tmp/check_hf_access.sh {{ .Values.llm.hfNamespace }}/{{ .Values.llm.hfModel }} $HF_TOKEN
             
             export MC_HOST_s3=https://$AWS_ACCESS_KEY_ID:$AWS_SECRET_ACCESS_KEY:$AWS_SESSION_TOKEN@$AWS_S3_ENDPOINT
-            MC_PATH=s3/{{ .Values.s3.modelHfBucket }}/{{ .Values.llm.hfNamespace }}/{{ .Values.llm.hfModel }}
+            MC_PATH=s3/{{ .Values.s3.s3ModelPath }}/{{ .Values.llm.hfNamespace }}/{{ .Values.llm.hfModel }}
             
             echo "🔹 Checking model availability on SSPCloud..."
             if mc stat "$MC_PATH" >/dev/null 2>&1; then

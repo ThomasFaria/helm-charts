@@ -39,7 +39,7 @@ ingress:
 
 s3:
   enabled: true # Set to true to use S3
-  modelHfBucket: ""
+  s3ModelPath: ""
   accessKeyId: ""
   endpoint: ""
   defaultRegion: ""
