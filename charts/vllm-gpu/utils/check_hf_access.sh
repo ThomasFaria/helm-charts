@@ -7,7 +7,7 @@ HF_TOKEN=$2
 URL="https://huggingface.co/api/models/${MODEL_NAME}"
 
 # Step 1: Check if the model is gated
-echo "Checking model visibility for '$MODEL_NAME'..."
+echo "🔹 Checking model visibility for '$MODEL_NAME'..."
 RESPONSE=$(curl -s "$URL" | jq .gated)
 
 # If the model is public, allow access immediately
@@ -23,7 +23,7 @@ else
 fi
 
 # Step 2: If gated, check token access
-echo "Checking access to '$MODEL_NAME' with provided token..."
+echo "🔹 Checking access to '$MODEL_NAME' with provided token..."
 CHECK_ACCESS=$(curl -s -H "Authorization: Bearer $HF_TOKEN" -I "https://huggingface.co/${MODEL_NAME}/resolve/main/config.json" | head -n 1)
 
 if echo "$CHECK_ACCESS" | grep -E "HTTP/[0-9]\.?[0-9]* 200"; then

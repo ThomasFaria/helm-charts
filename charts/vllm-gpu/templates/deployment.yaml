@@ -59,12 +59,12 @@ spec:
       {{- if .Values.s3.enabled }}
       initContainers:
       - name: minio-init
-        image: minio/mc
+        image: inseefrlab/onyxia-base:latest
         command: ["/bin/sh", "-c"]
         args:
           - |
             set -e  # Exit on error
-            
+
             echo "🔹 Downloading Hugging Face access check script..."
             wget -q -O /tmp/check_hf_access.sh https://raw.githubusercontent.com/ThomasFaria/helm-charts/master/charts/vllm-gpu/utils/check_hf_access.sh
             chmod +x /tmp/check_hf_access.sh
@@ -72,12 +72,18 @@ spec:
             echo "🔹 Checking model access on Hugging Face..."
             /tmp/check_hf_access.sh {{ .Values.llm.hfNamespace }}/{{ .Values.llm.hfModel }} $HF_TOKEN
             
-            export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-            export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-            export AWS_S3_ENDPOINT=$AWS_S3_ENDPOINT
-            export AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN
             export MC_HOST_s3=https://$AWS_ACCESS_KEY_ID:$AWS_SECRET_ACCESS_KEY:$AWS_SESSION_TOKEN@$AWS_S3_ENDPOINT
-            mc cp -r s3/{{ .Values.s3.modelHfBucket }}/{{ .Values.llm.hfNamespace }}/{{ .Values.llm.hfModel }}/ {{ .Values.llm.localPath }}/{{ .Values.llm.hfModel }}/
+            MC_PATH=s3/{{ .Values.s3.modelHfBucket }}/{{ .Values.llm.hfNamespace }}/{{ .Values.llm.hfModel }}
+            
+            echo "🔹 Checking model availability on SSPCloud..."
+            if mc stat "$MC_PATH" >/dev/null 2>&1; then
+                echo "✅ Model is available"
+            else
+                echo "❌ {{ .Values.llm.hfNamespace }}/{{ .Values.llm.hfModel }} is not yet available on SSPCloud, please try another one."
+                exit 1
+            fi
+
+            mc cp -r $MC_PATH/ {{ .Values.llm.localPath }}/{{ .Values.llm.hfModel }}/
         env:
         - name: AWS_ACCESS_KEY_ID
           valueFrom:
