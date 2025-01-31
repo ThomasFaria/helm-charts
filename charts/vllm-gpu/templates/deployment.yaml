@@ -27,7 +27,10 @@ spec:
             nvidia.com/gpu: "{{ .Values.resources.limits.gpu.number }}"
         env:
         - name: HF_TOKEN
-          value: "{{ .Values.huggingFace.hfToken }}"
+          valueFrom:
+            secretKeyRef:
+              name: "{{ include "llm-serving.secretName" . }}"
+              key: HF_TOKEN
         args:
         - --model
         {{- if .Values.s3.enabled }}
@@ -79,7 +82,7 @@ spec:
             if mc stat "$MC_PATH" >/dev/null 2>&1; then
                 echo "✅ Model is available"
             else
-                echo "❌ {{ .Values.llm.hfNamespace }}/{{ .Values.llm.hfModel }} is not yet available on SSPCloud, please try another one."
+                echo "❌ {{ .Values.llm.hfNamespace }}/{{ .Values.llm.hfModel }} is not yet available on SSPCloud, please try another one or unable S3 to fetch it directly from HuggingFace 🤗."
                 exit 1
             fi
 
